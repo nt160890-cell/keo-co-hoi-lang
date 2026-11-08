@@ -1,0 +1,16 @@
+{
+  "name": "keo-co-hoi-lang-live",
+  "private": true,
+  "type": "module",
+  "description": "Kéo Co Hội Làng: a turn-based snail artillery battle for TikTok LIVE that runs offline on one PC.",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "msedge-tts": "2.1.0",
+    "tiktok-live-connector": "2.5.0"
+  }
+}

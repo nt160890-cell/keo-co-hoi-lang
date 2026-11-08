@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="vi" class="live">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kéo Co Hội Làng</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💪</text></svg>">
+<link rel="stylesheet" href="game.css">
+</head>
+<body class="live">
+<div class="app" id="app">
+  <header class="top">
+    <div class="brand">Kéo Co <em>Hội Làng</em></div>
+    <span class="st" id="status"><i></i><span>Đang chờ TikTok LIVE…</span></span>
+  </header>
+
+  <!-- the three best of this live, at the very top -->
+  <div class="top3" id="top3"></div>
+
+  <section class="scene" id="scene" aria-label="Sân kéo co">
+    <canvas id="cv"></canvas>
+    <div class="sides">
+      <div class="side-card ts" id="side0"></div>
+      <div class="round-mid" id="roundMid"></div>
+      <div class="side-card cf" id="side1"></div>
+    </div>
+    <div class="turnchip" id="turnChip" hidden></div>
+    <div class="pin" id="pin" hidden></div>
+    <div class="alerts" id="alerts" aria-live="polite"></div>
+    <div class="banner" id="banner" hidden></div>
+    <div class="joins" id="joins"></div>
+    <span class="bot" id="botTag" title="Giọng đọc là giọng tự động của game" hidden>🤖 Bình luận viên tự động</span>
+  </section>
+
+  <!-- how to play, short, in the middle of the screen -->
+  <section class="guide" aria-label="Cách chơi">
+    <div class="g-t">📣 CÁCH CHƠI</div>
+    <ol>
+      <li>💬 Chat <kbd>trâu</kbd> 🐃 hoặc <kbd>gà</kbd> 🐓 → vào phe đó · mỗi lần chat là một lần <b>kéo</b></li>
+      <li><b>❤ Càng nhiều tim</b> phe bạn kéo càng khoẻ · <b>🥁 trống hội</b> thì kéo gấp đôi</li>
+      <li>🎁 <b>Tặng quà kéo cực mạnh</b>: 🍬 · 🍙 · 💪 · 🥁 phe mình ×2 · ⚓ phe kia yếu nửa</li>
+      <li>🏆 Khăn đỏ chạm vạch là thắng: mỗi người <b>+30</b> · chat <kbd>túi</kbd> xem lực kéo</li>
+    </ol>
+  </section>
+
+  <section class="bottom">
+    <div class="weapons" id="weapons"></div>
+    <div class="donors">
+      <div class="d-tabs"><b id="tabRich" class="on">💰 ĐẠI GIA</b><b id="tabDmg">💪 TOP LỰC KÉO</b></div>
+      <ol id="donors"></ol>
+      <ol id="dmgList" class="dmg" hidden></ol>
+    </div>
+  </section>
+</div>
+<div class="flash" id="flash"></div>
+<button type="button" class="sound" id="sound" hidden><span>🔊</span>Chạm để bật âm thanh</button>
+<div class="demo" id="demo" hidden></div>
+<div class="page-role" id="pageRole" hidden>👀 Trang phụ: chỉ xem, không lưu điểm, không đọc. Game đang chạy ở một nguồn khác, xoá nguồn thừa này đi.</div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

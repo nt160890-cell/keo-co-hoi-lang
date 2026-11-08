@@ -1,0 +1,3 @@
+# start scripts run in bash on Ubuntu / macOS: keep LF line endings
+*.sh text eol=lf
+*.command text eol=lf

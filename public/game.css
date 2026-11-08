@@ -1,0 +1,201 @@
+/* Kéo Co Hội Làng (copied from ../bao-ve-to-dan-pho): portrait 9:16 overlay for TikTok LIVE (OBS / LIVE Studio browser source 1080×1920), 07/11.
+   Base rules (alerts, banner, pin, sound gate, demo, safe area) are ports of ../dua-bi/public/game.css.
+   --lw is the 9:16 column: the full width on a phone, a centred column on a wider screen. */
+:root{
+  --bg:#1c1410;--panel:#2a1e16e6;--line:#5a4232;--ink:#fff7ec;--smoke:#d9c6b0;
+  --gold:#ffcf3d;--gold-soft:#ffcf3d66;--pink:#ff5d8f;--red:#e8344e;
+  --safe-r:calc(var(--lw) * .12);--safe-t:13vh; /* TikTok header covers the top ~13% */
+}
+html.live{--lw:min(100vw,56.25vh);font-size:calc(var(--lw) / 24)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden}
+body{font-family:"Segoe UI","Roboto","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+kbd{font:inherit;font-weight:800;color:#3a2410;background:var(--gold);border-radius:.25rem;padding:0 .22rem}
+.app{display:flex;flex-direction:column;width:var(--lw);height:100%;margin:0 auto;
+  padding:1.6vh calc(var(--lw) * .03) .3rem;gap:calc(var(--lw) * .012);
+  background:radial-gradient(120% 60% at 50% 0%,#5a3420 0%,var(--bg) 70%)}
+
+/* header (the strip TikTok covers: only the host sees it in the Studio preview) */
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;padding-right:var(--safe-r);
+  flex:none;height:calc(var(--safe-t) - 1.6vh - var(--lw) * .012)}
+.brand{font-weight:900;font-size:1rem;letter-spacing:.02em;line-height:1;color:#fff;text-shadow:0 .08rem 0 #6a2a10,0 0 .6rem #ffb34755}
+.brand em{font-style:normal;color:var(--gold)}
+.st{display:inline-flex;align-items:center;gap:.3rem;font-size:.46rem;color:var(--smoke);white-space:nowrap}
+.st i{width:.38rem;height:.38rem;border-radius:50%;background:#6e5f4e}
+.st.on i{background:#fe2c55;box-shadow:0 0 .35rem #fe2c55;animation:pulse 1.6s infinite}
+.st.demo i{background:var(--gold)}
+@keyframes pulse{50%{opacity:.45}}
+
+/* top 3 of this live */
+.top3{flex:none;display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:.2rem}
+.t3{display:flex;align-items:center;gap:.18rem;min-width:0;padding:.12rem .3rem;border-radius:.5rem;background:#fff8e8;color:#3a2410;
+  border:.1rem solid #3a2410;box-shadow:0 .1rem 0 #0007;font-weight:800;font-size:.46rem}
+.t3 .md{font-size:.75rem;line-height:1}
+.t3 .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.t3 .pt{color:var(--red);font-variant-numeric:tabular-nums}
+.t3 .wp{font-size:.55rem}
+.t3.r0{background:linear-gradient(#ffe68a,#ffc53a);font-size:.5rem}
+.t3.empty{opacity:.65}.t3.empty .nm{font-weight:600;color:#8a7a68}
+
+/* scene */
+.scene{position:relative;flex:none;aspect-ratio:1000/886;min-height:0;width:100%;border-radius:.8rem;overflow:hidden;container-type:size;
+  box-shadow:0 .2rem 1rem #0008,inset 0 0 0 1px #ffffff22;background:#4b4f55;pointer-events:none}
+.scene canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hud{position:absolute;left:.3rem;bottom:.3rem;z-index:6;display:flex;flex-direction:column;gap:.1rem;width:44%}
+.wavechip{align-self:flex-start;max-width:100%;padding:.06rem .35rem;border-radius:999px;background:#1c1410d9;border:1px solid #ffffff44;color:#fff;font-size:.42rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hp{position:relative;height:.55rem;border-radius:999px;background:#1c1410d9;border:1px solid #ffffff55;overflow:hidden}
+.hp i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#43a047,#9ccc65);transition:width .3s}
+.hp i.mid{background:linear-gradient(90deg,#f9a825,#ffd54f)}.hp i.low{background:linear-gradient(90deg,#c62828,#ef5350)}
+.hp span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.36rem;font-weight:900;color:#fff;text-shadow:0 0 .15rem #000}
+.pcount{position:absolute;right:.3rem;bottom:.3rem;z-index:6;padding:.06rem .35rem;border-radius:999px;background:#1c1410d9;border:1px solid #ffffff44;font-size:.4rem;font-weight:700;color:#fff}
+.evchip{position:absolute;right:.3rem;top:2.2rem;z-index:7;display:flex;align-items:center;gap:.25rem;max-width:62%;padding:.12rem .4rem .12rem .2rem;border-radius:.6rem;
+  background:linear-gradient(90deg,#0d3a4cf0,#1c1410f0);border:.1rem solid #7fe0ff;box-shadow:0 0 .6rem #7fe0ff88;font-size:.42rem;animation:aIn .4s ease-out}
+.evchip[hidden]{display:none}
+.evchip .ic{font-size:.9rem;line-height:1}
+.evchip b{color:#bff1ff}.evchip small{display:block;font-size:.34rem;color:#d7f6ff}
+.evchip em{font-style:normal;font-weight:900;color:var(--gold);margin-left:auto;padding-left:.2rem;font-variant-numeric:tabular-nums}
+.bot{position:absolute;left:.35rem;top:.35rem;z-index:2;font-size:.34rem;color:#fff;background:#1c1410aa;border-radius:999px;padding:.03rem .35rem;white-space:nowrap}
+.bot[hidden]{display:none}
+body.pinned .bot{display:none}
+.joins{position:absolute;left:0;right:0;bottom:1.6rem;z-index:8;display:flex;flex-direction:column;align-items:center;gap:.12rem;pointer-events:none}
+.jp{background:#fff;color:#3a2410;border:.1rem solid #3a2410;border-radius:999px;padding:.03rem .4rem;font-size:.4rem;font-weight:700;white-space:nowrap;animation:jpIn .35s ease-out}
+.jp b{color:var(--red)}
+.jp.out{opacity:0;transition:opacity .5s}
+@keyframes jpIn{from{transform:translateY(.4rem);opacity:0}}
+
+/* alerts, banners, pinned ticker (ports of Đua Bi) */
+.alerts{position:absolute;inset:0;bottom:auto;display:flex;flex-direction:column;align-items:center;gap:.22rem;padding:.4rem .5rem;z-index:8}
+.alert{display:flex;align-items:center;gap:.35rem;max-width:100%;background:#1c1410e8;border:1px solid #ffffff44;border-radius:999px;padding:.14rem .6rem .14rem .25rem;
+  font-size:.48rem;color:var(--ink);box-shadow:0 .2rem .8rem #0008;animation:aIn .4s ease-out;transition:opacity .6s,transform .6s}
+.alert b{color:var(--gold)}
+.alert small{display:block;font-size:.38rem;color:var(--smoke)}
+.alert .ic{font-size:.78rem;line-height:1}
+.alert.gift{border-color:var(--pink);background:linear-gradient(90deg,#4a1730ee,#1c1410ee)}
+.alert.gold{border-color:var(--gold);background:linear-gradient(90deg,#4a3a0aee,#1c1410ee)}
+.alert.boss{border-color:#ff5252;background:linear-gradient(90deg,#5a0a0aee,#1c1410ee)}
+.alert.event{border-color:#7fe0ff;background:linear-gradient(90deg,#0d3a4cee,#1c1410ee)}
+.alert.out{opacity:0;transform:translateY(-.4rem)}
+@keyframes aIn{from{opacity:0;transform:translateY(.5rem) scale(.95)}}
+.banner{position:absolute;left:4%;right:4%;top:34%;z-index:9;text-align:center;padding:.5rem .6rem;border-radius:.8rem;background:radial-gradient(#5a3d00f2,#1a1200f2);
+  border:3px solid var(--gold);box-shadow:0 0 1.4rem #ffcf3dcc;animation:bannerIn .6s cubic-bezier(.2,1.6,.4,1)}
+.banner[hidden]{display:none}
+.banner .t{font-size:.6rem;font-weight:800;letter-spacing:.2em;color:var(--gold)}
+.banner .n{font-size:.9rem;font-weight:900;color:#fff;margin:.1rem 0}
+.banner .s{font-size:.5rem;font-weight:700;color:#ffe9c9;margin-top:.2rem}
+.banner .rows{list-style:none;margin:.3rem 0;padding:0;font-size:.62rem;font-weight:800;color:#fff;line-height:1.5}
+.banner .rows b{color:var(--gold)}
+.banner.bye{background:radial-gradient(#0d4a5cf2,#06222bf2);border-color:#7fe0ff;box-shadow:0 0 1.4rem #7fe0ffaa}
+.banner.bye .t{color:#bff1ff}
+.banner.breach{background:radial-gradient(#6a0f0ff2,#250404f2);border-color:#ff5252;box-shadow:0 0 1.6rem #ff5252cc}
+.banner.breach .t{color:#ffb3b3}
+.banner.notice{top:30%;background:radial-gradient(#5a1430f2,#22060ff2);border-color:#ff7aa8;box-shadow:0 0 1.4rem #ff7aa8aa}
+.banner.notice .t{color:#ffd0e0}
+.banner.notice .n{font-size:.78rem;line-height:1.3;overflow-wrap:anywhere}
+@keyframes bannerIn{from{transform:scale(.3);opacity:0}}
+.pin{position:absolute;left:3%;right:3%;top:.3rem;z-index:8;display:flex;align-items:center;gap:.3rem;padding:.12rem .4rem .12rem .3rem;
+  border-radius:.5rem;background:linear-gradient(90deg,#5a1430ee,#2a1030ee);border:1px solid #ff7aa8;box-shadow:0 .2rem .8rem #0008;
+  font-size:.5rem;font-weight:800;color:#fff;line-height:1.3}
+.pin[hidden]{display:none}
+.pin .ic{font-size:.68rem;line-height:1;flex:none}
+.pin .mq{flex:1;min-width:0;overflow:hidden;white-space:nowrap;-webkit-mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent);mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent)}
+.pin .run{display:inline-block;animation:ticker var(--d,12s) linear infinite}
+.pin .run>span{padding-left:1.2rem}.pin .run i{font-style:normal;color:#ffcf3d;padding-left:1.2rem}
+@keyframes ticker{to{transform:translateX(-50%)}}
+body.pinned .alerts{padding-top:1.6rem}
+body.pinned .evchip{top:3rem}
+.page-role{position:fixed;left:50%;top:40%;transform:translateX(-50%);z-index:60;width:80%;max-width:20rem;padding:.5rem .7rem;border-radius:.6rem;
+  background:#3a0a0af0;border:2px solid #ff6b6b;color:#fff;font:700 .55rem/1.4 system-ui,sans-serif;text-align:center}
+.page-role[hidden]{display:none}
+.flash{position:fixed;inset:0;pointer-events:none;background:radial-gradient(#fff6c8,#ffcf3d88 50%,transparent 80%);opacity:0;z-index:40}
+.flash.go{animation:flash 1.4s ease-out}
+@keyframes flash{10%{opacity:.95}100%{opacity:0}}
+.shake{animation:shake .6s linear 2}
+@keyframes shake{20%{transform:translate(-4px,2px)}40%{transform:translate(4px,-2px)}60%{transform:translate(-3px,-2px)}80%{transform:translate(3px,2px)}}
+
+/* how to play: short, bright, in the middle */
+.guide{flex:none;padding:.18rem .45rem .22rem;border-radius:.6rem;background:linear-gradient(#fff8e8,#ffeec8);color:#3a2410;border:.12rem solid #3a2410;box-shadow:0 .12rem 0 #0007}
+.g-t{font-size:.44rem;font-weight:900;color:var(--red);letter-spacing:.05em}
+.guide ol{list-style:none;margin:.05rem 0 0;padding:0;display:flex;flex-direction:column;gap:.04rem}
+.guide li{font-size:.44rem;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.guide li b{color:#b3261e}
+
+/* bottom: gift → weapon tiles on the left (top-aligned, TikTok's comments cover the lower left), donors on the right */
+.bottom{flex:1 1 auto;min-height:0;display:flex;gap:.3rem;align-items:flex-start;padding-bottom:7vh} /* takes what the shorter road gave back; the last 7vh is TikTok's comment bar */
+.weapons{flex:none;width:52%;padding:.15rem .3rem .2rem;border-radius:.6rem;border:.12rem solid var(--gold);
+  background:linear-gradient(160deg,#5a3d00f2,#2a1608f2);box-shadow:0 0 .8rem #ffcf3d88;animation:giftGlow 2.4s ease-in-out infinite}
+@keyframes giftGlow{50%{box-shadow:0 0 1.5rem #ffcf3dcc}}
+.w-t{font-size:.42rem;font-weight:900;color:#ffe27a;letter-spacing:.03em}
+.w-grid{list-style:none;margin:.1rem 0 0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:.14rem}
+.wt{display:flex;flex-direction:column;align-items:center;padding:.04rem .05rem .08rem;border-radius:.4rem;background:linear-gradient(#fffaf0,#ffe9b0);color:#3a2410;border:.08rem solid var(--gold);line-height:1.1;min-width:0}
+.wt .wx{font-size:.34rem;font-weight:900;color:#d4552a;white-space:nowrap}
+.wt .wi{font-size:.85rem;line-height:1.15}
+.wt .wn{font-size:.32rem;font-weight:800;background:var(--red);color:#fff;border-radius:999px;padding:0 .2rem;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.wt.tower{background:linear-gradient(#e8f6ff,#b8e2ff);border-color:#4fc3ff}.wt.tower .wn{background:#1565c0}.wt.tower .wx{font-size:.3rem}
+.wt.hit{animation:gtHit .5s ease-in-out 5}
+@keyframes gtHit{50%{transform:scale(1.14);box-shadow:0 0 .9rem #fff,0 0 .4rem #ffcf3d}}
+.w-s{margin-top:.08rem;font-size:.3rem;color:#ffe9a8;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.donors{flex:1;min-width:0;align-self:stretch;padding:.15rem .35rem;border-radius:.6rem;background:var(--panel);border:.1rem solid var(--gold-soft)}
+.d-t{font-size:.42rem;font-weight:900;color:var(--gold);letter-spacing:.03em;white-space:nowrap}
+.donors ol{list-style:none;margin:.12rem 0 0;padding:0;display:flex;flex-direction:column;gap:.1rem}
+.donors li{display:flex;align-items:center;gap:.15rem;font-size:.42rem;white-space:nowrap}
+.donors .rk{width:.6rem;text-align:center;color:var(--smoke);font-weight:800}
+.donors .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.donors .c{color:var(--gold);font-weight:900;font-variant-numeric:tabular-nums}
+.donors li.king{font-size:.48rem}.donors li.king .nm{color:#ffe27a}
+.donors li.empty{white-space:normal;color:var(--smoke);font-size:.38rem;line-height:1.35}
+
+/* sound gate, demo help, ?safe=1 */
+.sound{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:50;display:flex;align-items:center;gap:.4rem;font:inherit;font-size:.7rem;font-weight:700;
+  color:#3a2410;background:var(--gold);border:0;border-radius:999px;padding:.5rem 1rem;box-shadow:0 .3rem 1.2rem #000c;cursor:pointer}
+.sound[hidden]{display:none}
+.demo{position:fixed;left:calc(50% - var(--lw) / 2 + .3rem);bottom:.3rem;z-index:60;font-size:.34rem;line-height:1.35;color:#fff;background:#000a;border-radius:.3rem;padding:.2rem .35rem;max-width:46%}
+.demo[hidden]{display:none}
+.demo kbd{background:none;color:var(--gold);padding:0}
+body.show-safe::before{content:"";position:fixed;left:0;right:0;top:0;height:var(--safe-t);z-index:99;pointer-events:none;background:#ff2d5540;outline:2px dashed #ff2d55}
+body.reduced :is(.weapons,.wt.hit,.jp,.alert,.banner,.evchip){animation:none!important}
+
+/* 07/11 night: when no event is on, the chip counts down to the next one and shows the most called */
+.evchip.next{border-color:#ffffff55;background:#1c1410d9;box-shadow:none;animation:none;font-size:.38rem}
+.evchip.next .ic{font-size:.7rem}.evchip.next b{color:var(--gold)}.evchip.next small{color:var(--smoke)}
+
+/* 07/11 night: the right box has two tabs that take turns (10 s): donors and the 15 biggest damage dealers of this live */
+.donors{display:flex;flex-direction:column}
+.d-tabs{display:flex;gap:.15rem;flex:none}
+.d-tabs b{flex:1;text-align:center;font-size:.38rem;font-weight:900;letter-spacing:.02em;white-space:nowrap;padding:.05rem .1rem;border-radius:.35rem;color:var(--smoke);background:#ffffff12;transition:background .3s,color .3s}
+.d-tabs b.on{color:#3a2410;background:var(--gold)}
+.donors ol[hidden]{display:none}
+#dmgList{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(8,auto);grid-auto-flow:column;column-gap:.3rem;row-gap:.06rem;align-content:start}
+#dmgList li{font-size:.36rem;gap:.1rem}
+#dmgList .rk{width:.5rem;font-size:.34rem}
+#dmgList li.t0 .nm{color:#ffe27a}
+#dmgList li.empty{grid-column:1/-1;grid-row:1/-1}
+#dmgList[hidden]{display:none}
+
+/* ---------------- Kéo Co Hội Làng (07/11) */
+.app{background:radial-gradient(120% 60% at 50% 0%,#3a2a4a 0%,#161220 70%)}
+:root{--bg:#161220;--ts:#7fb3d5;--cf:#e8772e} /* --ts: Phe Matcha (green) */
+.scene{background:#7ecbf5}
+.sides{position:absolute;left:.25rem;right:.25rem;top:.25rem;z-index:6;display:grid;grid-template-columns:1fr auto 1fr;gap:.2rem;align-items:start}
+.side-card{padding:.08rem .3rem .12rem;border-radius:.45rem;background:#1c1410cc;border:.1rem solid var(--ts);font-size:.4rem;color:#fff;min-width:0}
+.side-card.cf{border-color:var(--cf);text-align:right}
+.side-card .sn{font-weight:900;white-space:nowrap}.side-card .sn em{font-style:normal;color:var(--gold);margin-left:.2rem}
+.side-card .sb{height:.28rem;margin:.06rem 0;border-radius:999px;background:#ffffff22;overflow:hidden}
+.side-card .sb i{display:block;height:100%;background:var(--ts);transition:width .4s}
+.side-card.cf .sb i{background:var(--cf);margin-left:auto}
+.side-card .ss{font-size:.32rem;color:var(--smoke);white-space:nowrap}
+.round-mid{padding:.08rem .35rem;border-radius:.45rem;background:#1c1410dd;border:1px solid #ffffff44;font-size:.36rem;color:var(--smoke);text-align:center;line-height:1.2;font-variant-numeric:tabular-nums}
+.round-mid b{display:block;color:#fff;font-size:.42rem;white-space:nowrap}
+.turnchip{position:absolute;left:50%;bottom:.35rem;transform:translateX(-50%);z-index:6;padding:.06rem .45rem;border-radius:999px;background:#1c1410e0;border:1px solid var(--gold-soft);font-size:.42rem;color:#fff;white-space:nowrap}
+.turnchip[hidden]{display:none}.turnchip b{color:var(--gold)}
+.alerts{top:2.1rem}
+.alert.ts{border-color:var(--ts)}.alert.cf{border-color:var(--cf)}
+.jp.ts b{color:#33691e}.jp.cf b{color:#6d4c41}
+.joins{bottom:1.7rem}
+.banner.round{background:radial-gradient(#3a2a4af2,#161220f2);border-color:#c5b3ff;box-shadow:0 0 1.4rem #c5b3ffaa}
+.banner.round .t{color:#e2d8ff}
+.banner.ts{background:radial-gradient(#2f5a1af2,#10200af2);border-color:var(--ts);box-shadow:0 0 1.6rem #8bc34acc}
+.banner.cf{background:radial-gradient(#5a3a22f2,#24160cf2);border-color:var(--cf);box-shadow:0 0 1.6rem #c08a5bcc}
+.wt.free{background:linear-gradient(#eceff1,#cfd8dc);border-color:#90a4ae}.wt.free .wn{background:#546e7a}
+.w-grid{grid-template-columns:repeat(3,1fr)}
+.votebar{position:absolute;left:50%;top:2.7rem;transform:translateX(-50%);z-index:5;padding:.05rem .4rem;border-radius:999px;background:#1c1410c8;font-size:.36rem;color:#fff;white-space:nowrap}
+.votebar[hidden]{display:none}.votebar b{color:var(--gold)}
