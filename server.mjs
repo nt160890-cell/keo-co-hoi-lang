@@ -520,6 +520,18 @@ const server = http.createServer(async (req, res) => {
       json(res, 200, { ok: true });
       return;
     }
+    if (p === '/host-cmd' && req.method === 'POST') {
+      // 10/11: the control page (dieu-khien.html). TikTok did not pass on the host's own comments from LIVE Studio
+      // (Lớp Học 00:00–00:23, hostChat 0 while viewers' chat came through), so the host can send the same commands here.
+      const data = JSON.parse(await readBody(req));
+      const text = String(data?.text || '').replace(/\s+/g, ' ').trim().slice(0, 200);
+      if (!text) { json(res, 400, { ok: false }); return; }
+      const demo = url.searchParams.has('demo');
+      const list = pages[demo].list;
+      for (const x of list) send(x.res, { type: 'hostcmd', text, demo, at: Date.now() });
+      json(res, 200, { ok: true, pages: list.length, live: isLive });
+      return;
+    }
     if (p === '/demo' && req.method === 'POST') {
       const event = JSON.parse(await readBody(req));
       json(res, handleEvent({ ...event, demo: true }) ? 200 : 400, { ok: true });
@@ -545,6 +557,7 @@ server.listen(PORT, LAN ? '0.0.0.0' : '127.0.0.1', () => {
       ? `Điện thoại cùng Wi-Fi mở: ${ips.map((ip) => `http://${ip}:${PORT}/?key=${LAN_KEY}`).join('  hoặc  ')}`
       : 'LAN=1 nhưng máy tính chưa có địa chỉ Wi-Fi (chưa nối mạng nhà?).');
   }
+  log(`Trang điều khiển (nút bấm thay lệnh chat): http://localhost:${PORT}/dieu-khien.html${LAN && lanAddresses()[0] ? `  · điện thoại: http://${lanAddresses()[0]}:${PORT}/dieu-khien.html?key=${LAN_KEY}` : ''}`);
   log(`Kéo Co Hội Làng: http://localhost.game:${PORT}/ (dán vào LIVE Studio; cần dòng "127.0.0.1 localhost.game" trong file hosts) · trên máy: http://localhost:${PORT}/ · thử: http://localhost:${PORT}/?demo=1`);
 });
 

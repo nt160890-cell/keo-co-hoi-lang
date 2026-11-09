@@ -22,3 +22,5 @@ Cổng **3946**. `?demo=1`, `?demo=bots`. Thử trên cổng khác: `PORT=3955 T
 ## Tự nối lại khi mất tín hiệu, vào xem là có chỗ (09/11, chủ live chọn, sau buổi Đào Vàng 21:57)
 - Server: đang live mà `STALE_MS` 2 phút không nhận được gì từ TikTok (số người xem, chat, tim, người vào, quà) thì ngắt và nối lại, ghi nhật ký, gửi `{type:'stale'}`; trang hiện "⚠️ Mất tín hiệu TikTok, đang nối lại…" ở dòng trạng thái (vùng TikTok che, chỉ chủ live thấy) 20 giây. Buổi 09/11 21:57–22:05 game "đã nối" 8 phút mà chỉ nhận 6 sự kiện sau lỗi `DEVICE_BLOCKED`.
 - Người vừa vào live vào phe ít người hơn, kéo cùng trong 1 phút (`MEMBER_PLAY`); chat / tim thì giữ 5 phút.
+
+- **Trang điều khiển** `public/dieu-khien.html` (10/11, vì TikTok không chuyển tin chủ live gõ trong LIVE Studio): nút bấm gửi `POST /host-cmd {text}` (cùng quyền như các trang khác: máy này, hoặc khoá LAN), server gửi `{type:'hostcmd', text, demo}` tới mọi trang cùng chế độ, trang chạy `hostCommand(text)`; lệnh không hiểu thì hiện "Lệnh chưa hiểu". Link in ra lúc khởi động. Thêm lệnh chủ live mới thì thêm nút vào trang này.

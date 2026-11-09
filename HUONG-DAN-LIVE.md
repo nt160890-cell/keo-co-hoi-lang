@@ -14,3 +14,10 @@
 `tb …`, `ghim …` / `bỏ ghim`, `đọc ít/vừa/nhiều`, `tắt/bật đọc`, `đóng live`, `xoá bảng`, `đuổi/tha @tên`, `vòng mới`.
 
 **Chủ live phải có mặt và nói chuyện**, đừng để game tự chạy.
+
+## Trang điều khiển (10/11)
+Đêm 10/11 TikTok không chuyển các tin chủ live gõ trong LIVE Studio tới game (Lớp Học), nên lệnh chat có thể không có tác dụng. Trang này bấm nút thay cho chat:
+- Trên máy chạy game: `http://localhost:3946/dieu-khien.html`. Mở trong trình duyệt thường, **không** dán vào LIVE Studio.
+- Trên điện thoại cùng Wi-Fi (cần `LAN=1` trong `.env`): dùng link `…/dieu-khien.html?key=…` hiện trong cửa sổ game lúc khởi động.
+- Có nút cho các lệnh riêng của game, mức đọc, tắt/bật giọng, thông báo, ghim, đóng live, và một ô gõ lệnh khác (`đuổi @tên`, `xoá bảng`…).
+- Game hiện thông báo trên màn hình live khi nhận lệnh. Lệnh gõ sai thì hiện "Lệnh chưa hiểu".

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Điều khiển Kéo Co Hội Làng</title>
+<link rel="icon" href="data:,">
+<style>
+  :root { --bg: #14202b; --card: #1f2f3d; --ink: #f4f1e8; --dim: #9fb0bf; --go: #2e9d5b; --gold: #d9a521; --red: #c8443a; --blue: #2f6fb3; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.4 system-ui, "Segoe UI", sans-serif; padding: 16px; max-width: 640px; margin-inline: auto; }
+  h1 { font-size: 1.3rem; margin: 0 0 4px; }
+  .sub { color: var(--dim); margin: 0 0 14px; font-size: .9rem; }
+  h2 { font-size: .85rem; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; margin: 18px 0 8px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  button { border: 0; border-radius: 12px; padding: 16px 10px; font: 700 1.05rem system-ui, sans-serif; color: #fff; background: var(--blue); cursor: pointer; touch-action: manipulation; }
+  button:active { transform: scale(.97); filter: brightness(1.15); }
+  button.big { grid-column: span 2; font-size: 1.3rem; padding: 22px; background: var(--go); }
+  button.gold { background: var(--gold); color: #241a00; }
+  button.red { background: var(--red); }
+  button.dim { background: #3a4b5a; }
+  .row { display: flex; gap: 8px; }
+  input { flex: 1; min-width: 0; padding: 14px; border-radius: 12px; border: 1px solid #3a4b5a; background: var(--card); color: var(--ink); font-size: 1rem; }
+  .row button { padding: 14px 16px; }
+  .hint { color: var(--dim); font-size: .85rem; margin: 6px 0 0; }
+  #msg { position: sticky; top: 0; z-index: 2; padding: 10px 12px; border-radius: 10px; background: var(--card); margin-bottom: 12px; min-height: 1.4em; }
+  #msg.ok { background: #1d4a31; } #msg.bad { background: #5a2420; }
+  code { background: var(--card); padding: 1px 5px; border-radius: 5px; }
+</style>
+</head>
+<body>
+<h1>🎙 Điều khiển Kéo Co Hội Làng</h1>
+<p class="sub">Bấm nút là game làm ngay, không cần chat trên TikTok. Game hiện thông báo trên màn hình live.</p>
+<div id="msg">Sẵn sàng.</div>
+
+<h2>Trận đấu</h2>
+<div class="grid">
+  <button class="big" data-cmd="vòng mới">🔄 Vòng mới</button>
+</div>
+
+<h2>Giọng đọc</h2>
+<div class="grid">
+  <button class="dim" data-cmd="đọc ít">Đọc ít</button>
+  <button class="dim" data-cmd="đọc vừa">Đọc vừa</button>
+  <button class="dim" data-cmd="đọc nhiều">Đọc nhiều</button>
+  <button class="dim" data-cmd="tắt đọc">🔇 Tắt giọng</button>
+  <button class="dim" data-cmd="bật đọc">🔊 Bật giọng</button>
+</div>
+
+<h2>Thông báo và ghim</h2>
+<div class="row"><input id="tb" placeholder="Nội dung thông báo…" maxlength="150"><button data-pre="tb">📢 Gửi</button></div>
+<div class="row" style="margin-top:8px"><input id="ghim" placeholder="Nội dung ghim…" maxlength="150"><button data-pre="ghim">📌 Ghim</button></div>
+<div class="grid" style="margin-top:8px"><button class="dim" data-cmd="bỏ ghim">Bỏ ghim</button></div>
+
+<h2>Lệnh khác</h2>
+<div class="row"><input id="free" placeholder="vd: đuổi @tên, tha @tên, xoá bảng"><button data-pre="free">Gửi</button></div>
+<p class="hint">Gõ giống như chat lệnh trên TikTok.</p>
+
+<h2>Kết thúc</h2>
+<div class="grid"><button class="red big" data-cmd="đóng live" data-ask="Đóng live và công bố kết quả buổi live?">🏁 Đóng live</button></div>
+<p class="hint">Bấm Đóng live, đợi khoảng 1 phút rồi mới bấm Kết thúc LIVE trong TikTok LIVE Studio.</p>
+
+<script>
+  const demo = new URLSearchParams(location.search).has('demo');
+  const msg = document.getElementById('msg');
+  const show = (t, cls) => { msg.textContent = t; msg.className = cls || ''; };
+  async function send(text) {
+    text = String(text || '').trim();
+    if (!text) return;
+    show('Đang gửi: ' + text + '…');
+    try {
+      const r = await fetch('/host-cmd' + (demo ? '?demo=1' : ''), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) show('Không gửi được (' + r.status + '). Mở lại trang bằng link có ?key=… nếu dùng điện thoại.', 'bad');
+      else if (!j.pages) show('Đã gửi "' + text + '" nhưng chưa có trang game nào đang mở.', 'bad');
+      else show('✓ ' + text + (demo ? ' (chế độ thử)' : ''), 'ok');
+    } catch { show('Không nối được tới game. Game còn chạy không?', 'bad'); }
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.dataset.ask && !confirm(b.dataset.ask)) return;
+    if (b.dataset.cmd) return send(b.dataset.cmd);
+    const box = document.getElementById(b.dataset.pre);
+    if (!box || !box.value.trim()) { show('Gõ nội dung trước đã.', 'bad'); return; }
+    send(b.dataset.pre === 'free' ? box.value : b.dataset.pre + ' ' + box.value);
+    box.value = '';
+  });
+  document.querySelectorAll('input').forEach((i) => i.addEventListener('keydown', (e) => { if (e.key === 'Enter') i.nextElementSibling.click(); }));
+</script>
+</body>
+</html>

@@ -973,6 +973,7 @@ function onEvent(e) {
     switch (e.type) {
       case 'hello': defaultPin = cleanText(String(e.pin || ''), PIN_MAX); drawPin(); host = String(e.host || '').toLowerCase(); hosts = Array.isArray(e.hosts) ? e.hosts.map((x) => String(x).toLowerCase()) : []; if (e.page) setPageId(e.page); setMain(e.main !== false); if (e.live) onLive(); else liveOffSoon(); setStatus(); break;
       case 'role': if (!e.main) tabStore.set('keoco.page', ''); location.reload(); break;
+      case 'hostcmd': if (!!e.demo === !!DEMO && !hostCommand(e.text || '')) alertBox(`<span class="ic">❔</span><span>Lệnh chưa hiểu: <b>${esc(String(e.text || '').slice(0, 40))}</b></span>`); break; // 10/11: dieu-khien.html
       case 'stale': { const el = document.querySelector('#status span'); if (el) { el.textContent = '⚠️ Mất tín hiệu TikTok, đang nối lại…'; clearTimeout(window.staleT); window.staleT = setTimeout(setStatus, 20_000); } break; } // 09/11: the server reconnects a dead link
       case 'status': if (e.live) onLive(); else onLiveOff(); break;
       case 'member': if (e.user) onMember(e.user); break;
