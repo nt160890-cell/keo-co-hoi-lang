@@ -12,3 +12,6 @@ Cổng **3946**. `?demo=1`, `?demo=bots`. Thử trên cổng khác: `PORT=3955 T
 - Chat `CHAT_PULL` 2, mỗi người tối đa 1 lần / giây. Tim: `HEART_PULL` 0,5 mỗi tim × (1 + `heartBoost`). Quà: `GIFT_PULLS`. Mỗi giây mọi người trên sân kéo nhẹ `AUTO_PULL`, dây trôi về giữa `CENTER_PULL`.
 - Vòng `ROUND_MS` 75 giây; lệch dưới `DRAW_WITHIN` là hoà. Giữ chỗ `HOOK_KICK` 5 phút. Dưới `BOT_UNDER` người thật có `BOT_COUNT` bot 🤖, không tính điểm.
 - Điểm: mỗi đơn vị kéo 1 điểm (ít nhất 1), quà `max(5, xu × 5)`, phe thắng +30. `sess.dmg` là tổng lực kéo (tab Top lực kéo).
+
+## Tên to hơn (09/11, chủ live chọn)
+- Tên trên đầu nhân vật vẽ 900 23 px, ba hàng so le cách 27 (trước quá nhỏ và mờ ở 720p).

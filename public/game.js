@@ -480,9 +480,9 @@ function drawPuller(p, side, i, kx, t) {
   g.save(); g.translate(side ? -7 : -8, side ? -67 : -64); drawHat(hash(p.id) % 20, t); g.restore();
   g.restore();
   // name, three staggered rows so that neighbours do not overlap
-  const label = shortName(p.name, 8), ny = y - 112 - (i % 3) * 19;
-  g.font = '800 15px "Segoe UI",Arial,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.lineWidth = 3.5; g.strokeStyle = 'rgba(0,0,0,.85)'; g.strokeText(label, x, ny);
+  const label = shortName(p.name, 8), ny = y - 116 - (i % 3) * 27; // 09/11: bigger, readable at 720p
+  g.font = '900 23px "Segoe UI",Arial,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.lineWidth = 5; g.strokeStyle = 'rgba(0,0,0,.85)'; g.strokeText(label, x, ny);
   g.fillStyle = p.bot ? '#e0e0e0' : side ? '#ffcc99' : '#b9e3ff'; g.fillText(label, x, ny);
   if (!p.bot && heartBoost(p.id) > 0.3) g.fillText('❤', x + 4 + g.measureText(label).width / 2 + 6, ny);
 }
