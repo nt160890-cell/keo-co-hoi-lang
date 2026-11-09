@@ -23,7 +23,7 @@ function setPageId(id) { PAGE_ID = id; tabStore.set('keoco.page', id); DATA_QS =
 setPageId(PAGE_ID);
 
 const C = {
-  HOOK_KICK: 300_000, // a comment / heart keeps the place on the rope this long
+  HOOK_KICK: 300_000, MEMBER_PLAY: 60_000, // a comment / heart keeps the place on the rope this long; coming in, a minute
   GIFT_POINTS_PER_COIN: 5, WIN_PTS: 30,
   ROUND_MS: 75_000, RESULT_MS: 9_000, START_MS: 4_000, DRAW_WITHIN: 3,
   CHAT_PULL: 2, CHAT_EVERY: 1_000, HEART_PULL: 0.5, AUTO_PULL: 0.3, CENTER_PULL: 0.995,
@@ -893,7 +893,8 @@ function sideOf(ph) {
   const hits = TEAM_WORDS.map((re) => re.test(ph));
   return hits[0] === hits[1] ? -1 : hits[0] ? 0 : 1;
 }
-function onMember(user) { if (db[String(user.id)]?.banned) return; }
+// 09/11 (host's choice): coming in puts the viewer on the smaller side for MEMBER_PLAY; a comment / heart keeps them longer
+function onMember(user) { if (db[String(user.id)]?.banned || players.has(String(user.id))) return; const r = touch(user), p = join(user, r.name, null, 'member'); p.lastPlay = now() - (C.HOOK_KICK - C.MEMBER_PLAY); }
 function onChat(user, text) {
   if (db[String(user.id)]?.banned) return;
   active();
@@ -972,6 +973,7 @@ function onEvent(e) {
     switch (e.type) {
       case 'hello': defaultPin = cleanText(String(e.pin || ''), PIN_MAX); drawPin(); host = String(e.host || '').toLowerCase(); hosts = Array.isArray(e.hosts) ? e.hosts.map((x) => String(x).toLowerCase()) : []; if (e.page) setPageId(e.page); setMain(e.main !== false); if (e.live) onLive(); else liveOffSoon(); setStatus(); break;
       case 'role': if (!e.main) tabStore.set('keoco.page', ''); location.reload(); break;
+      case 'stale': { const el = document.querySelector('#status span'); if (el) { el.textContent = '⚠️ Mất tín hiệu TikTok, đang nối lại…'; clearTimeout(window.staleT); window.staleT = setTimeout(setStatus, 20_000); } break; } // 09/11: the server reconnects a dead link
       case 'status': if (e.live) onLive(); else onLiveOff(); break;
       case 'member': if (e.user) onMember(e.user); break;
       case 'chat': if (e.user) onChat(e.user, e.text || ''); break;

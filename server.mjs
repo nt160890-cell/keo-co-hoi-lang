@@ -631,6 +631,7 @@ function startTikTok() {
       }
       log(`Đã nối TikTok LIVE @${USERNAME}, phòng ${state.roomId}${status != null ? ` (trạng thái ${status})` : ''}`);
       lastWait = '';
+      lastWire = Date.now();
       setLive(true);
     } catch (e) {
       setLive(false);
@@ -694,6 +695,26 @@ function startTikTok() {
     const n = Number(d.viewerCount ?? d.total ?? d.totalUser);
     if (n >= 0 && n !== viewers) { viewers = n; broadcast({ type: 'viewers', n }); } // 07/11: shown in the HUD ("132 xem")
   });
+
+  // 09/11 (Đào Vàng 21:57–22:05: "connected" for 8 minutes after a DEVICE_BLOCKED, yet only 6 events and no viewer
+  // count came in): while live, nothing at all from TikTok for STALE_MS (no viewer count, chat, heart, join, gift)
+  // means a dead link. Drop it and connect again, and tell the page (the host sees it on the status line).
+  const STALE_MS = 120_000;
+  let lastWire = Date.now(), staleTimes = 0;
+  for (const ev of [WebcastEvent.CHAT, WebcastEvent.LIKE, WebcastEvent.GIFT, WebcastEvent.MEMBER, WebcastEvent.ROOM_USER, WebcastEvent.FOLLOW, WebcastEvent.SHARE, WebcastEvent.SOCIAL].filter(Boolean)) {
+    conn.on(ev, () => { lastWire = Date.now(); });
+  }
+  setInterval(async () => {
+    if (!isLive || !conn.isConnected || timer || Date.now() - lastWire < STALE_MS) return;
+    staleTimes++;
+    log(`${Math.round((Date.now() - lastWire) / 1000)} giây không nhận được gì từ TikTok: nối lại (lần ${staleTimes})`);
+    handleEvent({ type: 'stale' });
+    lastWire = Date.now();
+    leaving = true; // our own drop: no "Mất kết nối" line, no live-off
+    try { await conn.disconnect(); } catch { /* already closed */ }
+    setTimeout(() => { leaving = false; }, 3000);
+    schedule(2000);
+  }, 15_000);
 
   setInterval(() => {
     if (stats.events) log(`${stats.events} sự kiện, ${stats.members} người vào${viewers !== null ? `, ${viewers} người xem` : ''}, ${clients.size} trang đang mở`);

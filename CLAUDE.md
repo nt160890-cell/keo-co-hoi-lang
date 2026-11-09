@@ -15,3 +15,10 @@ Cổng **3946**. `?demo=1`, `?demo=bots`. Thử trên cổng khác: `PORT=3955 T
 
 ## Tên to hơn (09/11, chủ live chọn)
 - Tên trên đầu nhân vật vẽ 900 23 px, ba hàng so le cách 27 (trước quá nhỏ và mờ ở 720p).
+
+## Làm nổi lời kêu gọi (09/11, chủ live chọn)
+- Trong hộp hướng dẫn, việc người xem cần làm (Thả tim, Chat, Tặng quà) nằm trong nhãn đỏ `.cta`, chữ cần gõ (`kbd`) vàng phát sáng; cả hai nhấp nhẹ (`ctaPulse`, tắt khi `reduced`).
+
+## Tự nối lại khi mất tín hiệu, vào xem là có chỗ (09/11, chủ live chọn, sau buổi Đào Vàng 21:57)
+- Server: đang live mà `STALE_MS` 2 phút không nhận được gì từ TikTok (số người xem, chat, tim, người vào, quà) thì ngắt và nối lại, ghi nhật ký, gửi `{type:'stale'}`; trang hiện "⚠️ Mất tín hiệu TikTok, đang nối lại…" ở dòng trạng thái (vùng TikTok che, chỉ chủ live thấy) 20 giây. Buổi 09/11 21:57–22:05 game "đã nối" 8 phút mà chỉ nhận 6 sự kiện sau lỗi `DEVICE_BLOCKED`.
+- Người vừa vào live vào phe ít người hơn, kéo cùng trong 1 phút (`MEMBER_PLAY`); chat / tim thì giữ 5 phút.

@@ -199,3 +199,9 @@ body.reduced :is(.weapons,.wt.hit,.jp,.alert,.banner,.evchip){animation:none!imp
 .w-grid{grid-template-columns:repeat(3,1fr)}
 .votebar{position:absolute;left:50%;top:2.7rem;transform:translateX(-50%);z-index:5;padding:.05rem .4rem;border-radius:999px;background:#1c1410c8;font-size:.36rem;color:#fff;white-space:nowrap}
 .votebar[hidden]{display:none}.votebar b{color:var(--gold)}
+
+/* 09/11 (host's choice): every call to action stands out: what to do in a red pill, the words to type in glowing gold, both pulsing */
+.cta{display:inline-block;padding:0 .18rem;border-radius:.25rem;background:#e53950;color:#fff!important;font-weight:900;line-height:1.25;box-shadow:0 .06rem 0 #7a1020;animation:ctaPulse 2.4s ease-in-out infinite}
+:is(.guide,.cmds) kbd{display:inline-block;box-shadow:0 0 0 .05rem #fff9,0 0 .3rem #ffcf3d;animation:ctaPulse 2.4s ease-in-out .6s infinite}
+@keyframes ctaPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08);filter:brightness(1.18)}}
+body.reduced :is(.cta,.guide kbd,.cmds kbd){animation:none}
