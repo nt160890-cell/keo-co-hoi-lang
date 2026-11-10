@@ -205,3 +205,22 @@ body.reduced :is(.weapons,.wt.hit,.jp,.alert,.banner,.evchip){animation:none!imp
 :is(.guide,.cmds) kbd{display:inline-block;box-shadow:0 0 0 .05rem #fff9,0 0 .3rem #ffcf3d;animation:ctaPulse 2.4s ease-in-out .6s infinite}
 @keyframes ctaPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08);filter:brightness(1.18)}}
 body.reduced :is(.cta,.guide kbd,.cmds kbd){animation:none}
+
+/* 10/11 (host's choice): "Mưa hoa hồng". Every gift's coins fill one bar for the whole room (game.js roseAdd); at
+   C.ROSE_GOAL rose petals fall for a few seconds (none under .reduced) and the whole room gets the event */
+.rose{flex:none;margin:0 0 .14rem;padding:.06rem .3rem .1rem;border-radius:.45rem;background:linear-gradient(90deg,#5a0f2af0,#2a0d1cf0);
+  border:.08rem solid #ff7aa2;box-shadow:0 0 .4rem #ff5d8f55;color:#ffe3ec;font-weight:800;min-width:0}
+.rose .rt{font-size:.4rem;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rose .rt b{color:#fff;font-size:.46rem}
+.rose .rb{height:.13rem;margin-top:.05rem;border-radius:999px;background:#ffffff26;overflow:hidden}
+.rose .rb i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#ff9ab8,#ff3d77);transition:width .6s}
+.rose.on{border-color:#ffcf3d;background:linear-gradient(90deg,#7a1838f0,#4a2a08f0)}
+.rose.on .rb i{background:linear-gradient(90deg,#ffe27a,#ff7aa2)}
+.rose.full{animation:roseGlow .6s ease-in-out 6}
+@keyframes roseGlow{50%{box-shadow:0 0 1rem #ff7aa2;transform:scale(1.03)}}
+.rose-rain{position:fixed;inset:0;z-index:40;pointer-events:none;overflow:hidden}
+.rose-rain[hidden]{display:none}
+.rose-rain i{position:absolute;top:-1.6rem;font-style:normal;line-height:1;animation:roseFall linear forwards;will-change:transform}
+@keyframes roseFall{to{transform:translate(var(--dx),calc(100vh + 3.2rem)) rotate(var(--rot))}}
+body.reduced .rose-rain{display:none!important}
+body.reduced .rose.full{animation:none}

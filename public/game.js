@@ -30,6 +30,9 @@ const C = {
   BOT_UNDER: 10, BOT_COUNT: 5, SHOWN: 8,
   DRUM_EVERY: [25_000, 40_000], DRUM_MS: 6_000, DOUBLE_MS: 8_000, BRAKE_MS: 8_000,
   RIGHT_TAB_MS: 10_000,
+  // 10/11 (host's choice): "Mưa hoa hồng": every gift's coins fill one bar for the room (sess.roses); at ROSE_GOAL the
+  // whole room gets ROSE_MS of "giờ vàng hoa hồng": every point anyone earns, on both sides, counts double.
+  ROSE_GOAL: 20, ROSE_MS: 30_000, ROSE_GAP: 8_000,
   RULES_EVERY: 600_000, RULES_FIRST: 20_000,
   VOICE_PER_MIN: 4, VOICE_B_GAP: 30_000, VOICE_C_QUIET: 10_000, VOICE_QUEUE: 6,
   GREET_EVERY: 45_000, QUIET: 120_000, AMBIENCE_EVERY: 180_000, REMIND_FIRST: 300_000, REMIND_EVERY: 600_000,
@@ -178,7 +181,7 @@ function sessionId(t) { const d = new Date(t), p = (n) => String(n).padStart(2, 
 function newSession() {
   if (sess && !sess.end) { sess.end = now(); saveLive(); }
   const pin = sess ? sess.pin : null;
-  sess = { id: sessionId(now()), start: now(), end: null, updated: now(), board: {}, names: {}, coins: {}, dmg: {}, kills: {}, wins: [0, 0], round: 0, pin };
+  sess = { id: sessionId(now()), start: now(), end: null, updated: now(), board: {}, names: {}, coins: {}, dmg: {}, kills: {}, wins: [0, 0], round: 0, pin, roses: 0, roseBy: {} };
   sessDirty = true; boardsDirty = true; dmgDirty = true;
   drawPin();
 }
@@ -202,6 +205,7 @@ function onLiveOff() {
 }
 function addPoints(id, name, pts) {
   if (pts <= 0) return;
+  if (roseOn()) pts *= 2; // giờ vàng hoa hồng: the same for everyone on both sides
   const r = db[id];
   if (r) { r.total += pts; dirty = true; }
   const s = ensureSession();
@@ -222,7 +226,7 @@ async function loadData() {
   catch (e) { db = store.get(DEMO ? 'demo.players' : 'players', {}) || {}; dirty = true; console.warn('Không đọc được /data, dùng bản dự phòng trong trình duyệt.', e); }
   try {
     const s = await (await fetch('/live-result' + DATA_QS, { cache: 'no-store' })).json();
-    if (s && s.id && s.board && now() - (s.end || s.updated || s.start) < C.RESUME) sess = { names: {}, coins: {}, dmg: {}, kills: {}, wins: [0, 0], round: 0, ...s };
+    if (s && s.id && s.board && now() - (s.end || s.updated || s.start) < C.RESUME) sess = { names: {}, coins: {}, dmg: {}, kills: {}, wins: [0, 0], round: 0, roses: 0, roseBy: {}, ...s };
   } catch { /* no previous live */ }
 }
 let savingData = false;
@@ -599,9 +603,10 @@ function drawHud() {
   }
   let mid;
   if (!playing()) mid = closing() ? '🌙 Nghỉ' : '⏳ Chờ live';
-  else if (round.phase === 'play') mid = `Vòng ${round.n}<b>${drumUntil > t ? '🥁 Trống hội ×2' : '💪 Kéo nào!'}</b>${mmss(Math.max(0, round.endsAt - t))}`;
+  else if (round.phase === 'play') mid = `Vòng ${round.n}<b>${drumUntil > t ? '🥁 Trống hội ×2' : roseOn(t) ? '🌹 Điểm ×2' : '💪 Kéo nào!'}</b>${mmss(Math.max(0, round.endsAt - t))}`;
   else mid = round.phase === 'result' ? `Vòng ${round.n + 1}<b>sắp bắt đầu</b>${Math.max(0, Math.ceil((round.until - t) / 1000))}s` : '<b>Sắp bắt đầu</b>';
   setHtml('roundMid', mid);
+  drawRose();
   const tc = $('turnChip');
   if (lastPull && t - lastPull.at < 3000 && round.phase === 'play') { tc.hidden = false; setHtml('turnChip', `${SIDES[lastPull.side].ic} ${lastPull.text}`); }
   else tc.hidden = true;
@@ -956,7 +961,82 @@ function onGift(user, gift, count) {
   chime(2);
   say(line, 'A');
   thankInPin(r.name);
+  roseAdd(id, r.name, coins); // the room's bar, on top of what the giver gets
   saveSoon();
+}
+
+// ---------------------------------------------------------------- rose rain (10/11, host's choice)
+/**
+ * "Mưa hoa hồng": the coins of every gift go into one bar for the whole room (sess.roses, the givers since the last
+ * rain in sess.roseBy). roseTick() sees it reach C.ROSE_GOAL: the goal comes off (the rest stays), petals fall, and
+ * for C.ROSE_MS every point anyone earns counts double (addPoints), both sides alike, so it favours no side. It starts
+ * at once while a round is on, else with the next round. Nothing random and nothing to win; what a gift gives its
+ * giver is unchanged. A second rain waits for the first golden time to end.
+ */
+let roseFrom = 0, roseUntil = 0, roseLast = 0, roseGiver = null;
+const roseOn = (t = now()) => t >= roseFrom && t < roseUntil;
+function roseAdd(id, name, coins) {
+  if (!coins) return;
+  const s = ensureSession();
+  s.roses = (s.roses || 0) + coins;
+  s.roseBy ||= {};
+  const b = s.roseBy[id] || { n: name, c: 0 };
+  b.n = name; b.c += coins; s.roseBy[id] = b;
+  roseGiver = { id, n: name, c: coins };
+  sessDirty = true; drawRose();
+}
+function roseTick() {
+  const t = now();
+  if (!sess || (sess.roses || 0) < C.ROSE_GOAL || t < roseUntil || t - roseLast < C.ROSE_GAP) return;
+  roseRain();
+}
+const ROSE_LINES = [
+  (who) => `Mưa hoa hồng! Cảm ơn ${who} và cả nhà, ba mươi giây tới cả hai phe được điểm gấp đôi!`,
+  (who) => `Hoa hồng rơi khắp sân làng! Cảm ơn ${who}, giờ vàng hoa hồng, ai kéo cũng được gấp đôi điểm.`,
+  (who) => `Đủ ${C.ROSE_GOAL} xu rồi, mưa hoa hồng! Cảm ơn ${who}, phe trâu phe gà đều được điểm gấp đôi nhé.`,
+  (who) => `Cả sân được mưa hoa hồng! Cảm ơn ${who}, ba mươi giây điểm gấp đôi cho tất cả mọi người!`,
+];
+function roseRain() {
+  const s = ensureSession(), t = now();
+  s.roses = Math.max(0, (s.roses || 0) - C.ROSE_GOAL); roseLast = t;
+  const top = Object.values(s.roseBy || {}).sort((a, b) => b.c - a.c).slice(0, 2).map((x) => x.n);
+  // what is left over came from the last gift: it counts for that giver toward the next rain
+  s.roseBy = s.roses && roseGiver ? { [roseGiver.id]: { n: roseGiver.n, c: Math.min(s.roses, roseGiver.c) } } : {};
+  s.rains = (s.rains || 0) + 1; sessDirty = true; saveLive();
+  const later = round.phase !== 'play';
+  roseFrom = later ? Math.max(t, round.until) : t; roseUntil = roseFrom + C.ROSE_MS;
+  petals();
+  const el = $('rose'); el.classList.remove('full'); void el.offsetWidth; el.classList.add('full');
+  setTimeout(() => el.classList.remove('full'), 3600);
+  alertBox(`<span class="ic">🌹</span><span><b>MƯA HOA HỒNG!</b><small>${C.ROSE_MS / 1000} giây cả hai phe điểm ×2${later ? ' từ vòng sau' : ''}${top.length ? ` · cảm ơn ${top.map(nm).join(', ')}` : ''}</small></span>`, 'gold');
+  say(ROSE_LINES[(s.rains - 1) % ROSE_LINES.length](top.length ? top.map(voiceName).join(' và ') : 'cả nhà'), 'A');
+  for (let i = 0; i < 5; i++) tone(988 - i * 110, 0.18, 0.2, 'triangle', i * 0.12, 1.4);
+  drawRose();
+}
+/** Petals falling over the whole page for about 6 s (CSS; none under .reduced). */
+function petals() {
+  const box = $('roseRain');
+  if (REDUCED || !box) return;
+  let h = '';
+  for (let i = 0; i < 36; i++) {
+    const d = 2.8 + Math.random() * 1.2, dl = Math.random() * 2;
+    h += `<i style="left:${(Math.random() * 100).toFixed(1)}%;font-size:${(0.7 + Math.random() * 0.7).toFixed(2)}rem;animation-duration:${d.toFixed(2)}s;animation-delay:${dl.toFixed(2)}s;--dx:${(Math.random() * 6 - 3).toFixed(1)}rem;--rot:${Math.round(Math.random() * 720 - 360)}deg">${i % 3 ? '🌹' : '🌸'}</i>`;
+  }
+  box.innerHTML = h; box.hidden = false;
+  clearTimeout(petals.t); petals.t = setTimeout(() => { box.hidden = true; box.innerHTML = ''; }, 6200);
+}
+/** The badge: the bar toward the next rain, or the golden time left (waiting for the next round, or counting down). */
+function drawRose() {
+  const el = $('rose');
+  if (!el) return;
+  const t = now(), gold = t < roseUntil;
+  el.classList.toggle('on', gold);
+  let html, w;
+  if (gold && t < roseFrom) { html = '🌹 Giờ vàng hoa hồng <b>×2</b> từ vòng sau'; w = 100; }
+  else if (gold) { html = `🌹 Giờ vàng hoa hồng <b>×2</b> · ${Math.ceil((roseUntil - t) / 1000)}s`; w = ((roseUntil - t) / C.ROSE_MS) * 100; }
+  else { const n = Math.min(C.ROSE_GOAL, sess ? sess.roses || 0 : 0); html = `🌹 Mưa hoa hồng <b>${n}</b>/${C.ROSE_GOAL}`; w = (n / C.ROSE_GOAL) * 100; }
+  setHtml('roseT', html);
+  $('roseBar').style.width = w + '%';
 }
 const shareSeen = new Map();
 function onSocial(user, kind) {
@@ -1006,14 +1086,14 @@ const demoUsers = DEMO_NAMES.map((name, i) => ({ id: 'demo-' + (i + 1), handle: 
 const postDemo = (e) => fetch('/demo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(e) }).catch(() => {});
 function demoKeys() {
   const box = $('demo'); box.hidden = false;
-  box.innerHTML = '<b>Chế độ thử</b><br><kbd>1</kbd> chat trâu · <kbd>2</kbd> chat gà · <kbd>H</kbd> tim<br><kbd>G</kbd> quà 1 xu · <kbd>5</kbd> 5 xu · <kbd>D</kbd> 10 xu · <kbd>K</kbd> 30 xu · <kbd>M</kbd> 99 xu<br><kbd>R</kbd> vòng mới · <kbd>N</kbd> thông báo · <kbd>E</kbd> đóng live';
+  box.innerHTML = '<b>Chế độ thử</b><br><kbd>1</kbd> chat trâu · <kbd>2</kbd> chat gà · <kbd>H</kbd> tim<br><kbd>G</kbd> quà 1 xu · <kbd>5</kbd> 5 xu · <kbd>D</kbd> 10 xu · <kbd>K</kbd> 30 xu · <kbd>M</kbd> 99 xu · <kbd>O</kbd> 20 xu 🌹<br><kbd>R</kbd> vòng mới · <kbd>N</kbd> thông báo · <kbd>E</kbd> đóng live';
   addEventListener('keydown', (k0) => {
     if (k0.repeat || k0.ctrlKey || k0.metaKey || k0.altKey) return;
     const k = k0.key.toLowerCase(), u = pick(demoUsers), gift = (c) => postDemo({ type: 'gift', user: u, gift: { name: c >= 30 ? 'Bánh kem' : 'Hoa hồng', coins: c }, count: 1 });
     if (k === '1') postDemo({ type: 'chat', user: u, text: 'trâu' });
     else if (k === '2') postDemo({ type: 'chat', user: u, text: 'gà' });
     else if (k === 'h') postDemo({ type: 'like', user: u, count: 5 });
-    else if (k === 'g') gift(1); else if (k === '5') gift(5); else if (k === 'd') gift(10); else if (k === 'k') gift(30); else if (k === 'm') gift(99);
+    else if (k === 'g') gift(1); else if (k === '5') gift(5); else if (k === 'd') gift(10); else if (k === 'k') gift(30); else if (k === 'm') gift(99); else if (k === 'o') gift(20);
     else if (k === 'r') hostCommand('vòng mới');
     else if (k === 'n') announce('Tối nay 21 giờ có trận chung kết trâu đấu gà! 💪');
     else if (k === 'e') closeLive();
@@ -1028,7 +1108,7 @@ function demoBots() {
 // ---------------------------------------------------------------- boot
 const bootAt = now();
 function tick() {
-  roundTick(); kickTick();
+  roundTick(); kickTick(); roseTick();
   flushGreet(); ambience(); remind(); assist();
 }
 async function boot() {
@@ -1041,6 +1121,7 @@ async function boot() {
   await loadData();
   ensureSession();
   drawBoards(); drawPin(); showRightTab(0);
+  document.querySelectorAll('.rose-goal').forEach((x) => { x.textContent = C.ROSE_GOAL; });
   connect();
   requestAnimationFrame(frame);
   setInterval(tick, 100);
@@ -1060,7 +1141,7 @@ async function boot() {
   setTimeout(soundGate, 1200);
   if (DEMO) demoKeys();
   if (BOTS) demoBots();
-  window.keoco = { round: () => ({ ...round, pos }), players: () => [...players.values()].map((p) => ({ name: p.name, side: p.side, bot: !!p.bot })), hostCommand, onEvent, session: () => sess, C, main: () => mainPage };
+  window.keoco = { round: () => ({ ...round, pos }), players: () => [...players.values()].map((p) => ({ name: p.name, side: p.side, bot: !!p.bot })), hostCommand, onEvent, session: () => sess, rose: () => ({ roses: sess && sess.roses, by: sess && sess.roseBy, rains: sess && sess.rains, on: roseOn(), from: roseFrom - now(), left: roseUntil - now() }), roseRain, C, main: () => mainPage };
 }
 boot();
 
