@@ -25,6 +25,17 @@ import { fileURLToPath } from 'node:url';
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 import { ControlEvent, TikTokLiveConnection, UserOfflineError, WebcastEvent } from 'tiktok-live-connector';
 
+// 10/11: the Windows console's QuickEdit mode: one click in the server window starts a text selection, and Windows then
+// holds every console write, so the whole server stops (timers, voice, the TikTok heartbeat) until Esc / Enter.
+// TikTok closes the link after ~1 minute without heartbeats: "Mất kết nối (1000: client_ping_timeout)" (Câu Cá 10/11
+// 17:55–17:57, 18:01–18:03, 18:06–18:08: no log line at all, then the drop). Turn QuickEdit off for this window.
+// (The decoded script: kernel32 GetConsoleMode / SetConsoleMode on stdin, clear 0x40, set 0x80. No console: nothing.)
+if (process.platform === 'win32' && process.stdin.isTTY) {
+  import('node:child_process').then(({ spawn }) => spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand',
+    'JABzAD0AJwBbAEQAbABsAEkAbQBwAG8AcgB0ACgAIgBrAGUAcgBuAGUAbAAzADIALgBkAGwAbAAiACkAXQBwAHUAYgBsAGkAYwAgAHMAdABhAHQAaQBjACAAZQB4AHQAZQByAG4AIABJAG4AdABQAHQAcgAgAEcAZQB0AFMAdABkAEgAYQBuAGQAbABlACgAaQBuAHQAIABoACkAOwBbAEQAbABsAEkAbQBwAG8AcgB0ACgAIgBrAGUAcgBuAGUAbAAzADIALgBkAGwAbAAiACkAXQBwAHUAYgBsAGkAYwAgAHMAdABhAHQAaQBjACAAZQB4AHQAZQByAG4AIABiAG8AbwBsACAARwBlAHQAQwBvAG4AcwBvAGwAZQBNAG8AZABlACgASQBuAHQAUAB0AHIAIABoACwAbwB1AHQAIAB1AGkAbgB0ACAAbQApADsAWwBEAGwAbABJAG0AcABvAHIAdAAoACIAawBlAHIAbgBlAGwAMwAyAC4AZABsAGwAIgApAF0AcAB1AGIAbABpAGMAIABzAHQAYQB0AGkAYwAgAGUAeAB0AGUAcgBuACAAYgBvAG8AbAAgAFMAZQB0AEMAbwBuAHMAbwBsAGUATQBvAGQAZQAoAEkAbgB0AFAAdAByACAAaAAsAHUAaQBuAHQAIABtACkAOwAnADsAJABrAD0AQQBkAGQALQBUAHkAcABlACAALQBNAGUAbQBiAGUAcgBEAGUAZgBpAG4AaQB0AGkAbwBuACAAJABzACAALQBOAGEAbQBlACAAUQB1AGkAYwBrAEUAZABpAHQATwBmAGYAIAAtAE4AYQBtAGUAcwBwAGEAYwBlACAAVwAgAC0AUABhAHMAcwBUAGgAcgB1ADsAJABoAD0AJABrADoAOgBHAGUAdABTAHQAZABIAGEAbgBkAGwAZQAoAC0AMQAwACkAOwAkAG0APQAwADsAaQBmACgAJABrADoAOgBHAGUAdABDAG8AbgBzAG8AbABlAE0AbwBkAGUAKAAkAGgALABbAHIAZQBmAF0AJABtACkAKQB7AFsAdgBvAGkAZABdACQAawA6ADoAUwBlAHQAQwBvAG4AcwBvAGwAZQBNAG8AZABlACgAJABoACwAKAAkAG0AIAAtAGIAYQBuAGQAIAAoAC0AYgBuAG8AdAAgADAAeAA0ADAAKQApACAALQBiAG8AcgAgADAAeAA4ADAAKQB9AA=='],
+    { stdio: ['inherit', 'ignore', 'ignore'] }).on('error', () => {})).catch(() => {});
+}
+
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 loadEnv(path.join(ROOT, '.env'));
 
