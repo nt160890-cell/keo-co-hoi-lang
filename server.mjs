@@ -442,7 +442,7 @@ const server = http.createServer(async (req, res) => {
       let main;
       if (same) { const old = same.res; same.res = res; send(old, { type: 'role', main: false }); main = mainPage(demo) === id; }
       else main = pageJoin(demo, id, res);
-      send(res, { type: 'hello', host: USERNAME, hosts: HOSTS, pin: PIN_TEXT, live: isLive, tiktok: !!USERNAME, main, page: id, at: Date.now() });
+      send(res, { type: 'hello', game: 'keo-co-hoi-lang', host: USERNAME, hosts: HOSTS, pin: PIN_TEXT, live: isLive, tiktok: !!USERNAME, main, page: id, at: Date.now() });
       req.on('close', () => { clients.delete(res); pageLeave(demo, res); });
       return;
     }
